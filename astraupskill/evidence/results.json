@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "executedTests": 6,
+  "checks": [
+    {
+      "project": "_Organized Desktop/05 Numbered Experiments/ww7",
+      "id": "671a350f0386",
+      "command": [
+        "node",
+        "--experimental-vm-modules",
+        "--test",
+        "tests/runtime-workflow-same-status.test.mjs"
+      ],
+      "cwd": "C:\\Users\\Owner\\Desktop\\AstraOrganized2\\astra-remaining-improvements\\stage\\671a350f0386",
+      "environmentOverrides": {},
+      "startedAt": "2026-09-22T04:01:33.308320+00:00",
+      "status": "complete",
+      "log": "crud-b07-astra-runtime.log",
+      "pid": 37772,
+      "exitCode": 0,
+      "passed": true,
+      "finishedAt": "2026-09-22T04:01:46.212482+00:00",
+      "elapsedSeconds": 12.9
+    }
+  ],
+  "limits": [
+    "Six cases execute actual service, ownership helper, status/readiness policy and AppError with repository/schedule and generated-enum adapters. No HTTP route, live Prisma, cron parsing or concurrency run.",
+    "Equal-status calls retain ownership checks but skip activation-readiness and schedule recalculation. Coarse route permission enforcement is outside this lab. Status update and audit have no enclosing service transaction."
+  ]
+}
