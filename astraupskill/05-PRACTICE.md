@@ -1,11 +1,13 @@
 ﻿# Practice
 
-Exercise one: an operator requests ACTIVE on an already ACTIVE workflow. Predict return value, repository updates, audit events, and scheduling calls. Answer: loaded workflow, zero update, zero audit, and no scheduling calculation.
+Each exercise is a prediction you check against real source: `src/services/workflow-definition-service.ts:93-133`, `src/lib/workflow/status-machine.ts:15-35`, and `tests/runtime-workflow-same-status.test.mjs`.
 
-Exercise two: a different non-admin operator requests the same ACTIVE status. Should the no-op branch return? No. Ownership must reject first. The equality optimization follows `assertCanManageWorkflow`, so it cannot erase authorization policy.
+1. **Goal:** An operator requests ACTIVE on a workflow they own that is already ACTIVE. Predict the return value, repository updates, audit events, and scheduling calls. **Check:** the first test in `runtime-workflow-same-status.test.mjs` asserts the recorded calls equal `[['find','wf-1','all']]`. That means the loaded workflow is returned, with zero updates, zero audits, and no `getNextScheduledAt` call.
 
-Exercise three: request ACTIVE from PAUSED. Which extra policy runs? The transition is allowed, then definition input is reconstructed and `assertReadyForActivation` runs before scheduling and persistence. Supply a workflow with no steps to predict a readiness error.
+2. **Goal:** A different non-admin operator requests the same ACTIVE status. Decide whether the no-op branch returns. **Check:** it does not. `assertCanManageWorkflow` runs at line 100, before the equality check at line 103, and throws 403 `WORKFLOW_SCOPE_VIOLATION` (`src/lib/auth/permissions.ts:45-51`). The second runtime test asserts that refusal.
 
-Exercise four: request DRAFT from ACTIVE. The status machine rejects because the graph allows PAUSED or ARCHIVED, not DRAFT. Repository and audit should remain untouched.
+3. **Goal:** Request ACTIVE from PAUSED. Name the extra policy that runs. **Check:** PAUSED to ACTIVE is allowed (`status-machine.ts:18`). Definition input is rebuilt (line 107), then `assertReadyForActivation` and `getActivationTimestamp` run (lines 113-116) before `updateStatus`. A workflow with no steps fails with 422 `WORKFLOW_STEP_REQUIRED` (`status-machine.ts:41`).
 
-Exercise five: two workers read ACTIVE and request PAUSED and ARCHIVED concurrently. Does the no-op fix serialize them? No. The repository update lacks an old-status predicate. Propose a conditional update or version field, and specify how count zero would map to a conflict. Keep that proposal separate from this completed idempotency change.
+4. **Goal:** Request DRAFT from ACTIVE. **Check:** `allowedTransitions.ACTIVE` is `["PAUSED", "ARCHIVED"]` (`status-machine.ts:17`), so the request throws 409 `INVALID_WORKFLOW_TRANSITION`. The fourth runtime test asserts that only the `findById` call was recorded.
+
+5. **Goal:** Two callers read ACTIVE and request PAUSED and ARCHIVED concurrently. Decide whether the no-op fix serializes them, and propose a fix. **Check:** it does not. `updateStatus` filters on `id` only (`src/repositories/workflow-repository.ts:159-168`), so both writes succeed and the last one wins. A sound proposal adds the old status (or a version column) to the `where` clause, for example through `updateMany`, and maps a count of zero to a 409 conflict. Keep that proposal separate from this completed idempotency change.

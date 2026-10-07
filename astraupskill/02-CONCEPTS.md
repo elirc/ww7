@@ -11,4 +11,4 @@ The corrected order is permission and ownership, transition validation, equality
 | ACTIVE -> DRAFT | invalid | error only |
 | DRAFT -> ACTIVE | readiness required | update after validation |
 
-This is an application-level idempotency rule, not a database lock. Two concurrent callers can still race on different transitions because the repository update does not carry an old-status predicate. The runtime evidence proves call ordering with doubles; a live database test is needed for isolation claims.
+This is an application-level idempotency rule, not a database lock. Two concurrent callers can still race on different transitions because the repository update does not carry an old-status predicate: `updateStatus` filters on `where: { id: workflowId }` only (`src/repositories/workflow-repository.ts:159-168`). The runtime evidence proves call ordering with doubles; a live database test is needed for isolation claims.
